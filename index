@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distribuidora Nico R&J – Pedidos Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<!-- EmailJS para notificaciones de pedidos -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+  // ============================================================
+  // CONFIGURACIÓN EMAILJS — Completá con tus datos de emailjs.com
+  // ============================================================
+  const EMAILJS_PUBLIC_KEY  = 'fhshZ1IHVD74Kjec7';
+  const EMAILJS_SERVICE_ID  = 'service_4ms4s3l';
+  const EMAILJS_TEMPLATE_ID = 'template_sdjn4jw';
+  // ============================================================
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#c0392b;--green-light:#fdf0ef;--green-mid:#e74c3c;
+    --gold:#ff6b6b;--gold-light:#fff0f0;
+    --red:#7f0000;--red-light:#fdf0ef;
+    --gray:#6b7280;--gray-light:#f3f4f6;--gray-border:#e5e7eb;
+    --white:#fff;--dark:#1a0000;
+    --shadow:0 2px 12px rgba(0,0,0,0.12);
+    --radius:12px;
+  }
+  body{font-family:'DM Sans',sans-serif;background:#fdf5f5;color:var(--dark);min-height:100vh}
+
+  /* HEADER */
+  header{background:#1a0000;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
+  .logo{font-family:'Sora',sans-serif;color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:-0.3px}
+  .logo span{color:#ff9e9e;font-weight:400;font-size:.85rem;display:block}
+  .header-actions{display:flex;gap:.75rem;align-items:center}
+  .btn-cart{background:rgba(192,57,43,0.6);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:.45rem 1rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:500;display:flex;align-items:center;gap:.4rem;transition:background .2s}
+  .btn-cart:hover{background:rgba(192,57,43,0.9)}
+  .cart-badge{background:#e74c3c;color:#fff;font-size:.7rem;font-weight:700;padding:2px 6px;border-radius:99px;min-width:20px;text-align:center}
+  .btn-user{background:transparent;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:.45rem .9rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:500;transition:background .2s}
+  .btn-user:hover{background:rgba(255,255,255,0.1)}
+
+  /* PAGES */
+  .page{display:none;min-height:calc(100vh - 64px)}
+  .page.active{display:block}
+
+  /* AUTH */
+  .auth-wrap{max-width:420px;margin:3rem auto;padding:0 1rem}
+  .auth-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem}
+  .auth-title{font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:700;color:#c0392b;margin-bottom:.25rem}
+  .auth-sub{color:var(--gray);font-size:.9rem;margin-bottom:1.5rem}
+  .form-group{margin-bottom:1rem}
+  label{display:block;font-size:.85rem;font-weight:500;color:#374151;margin-bottom:.4rem}
+  input[type=text],input[type=email],input[type=password],input[type=tel],textarea,select{
+    width:100%;border:1px solid var(--gray-border);border-radius:8px;padding:.65rem .9rem;
+    font-size:.9rem;font-family:inherit;transition:border .2s;background:#fff;color:var(--dark)
+  }
+  input:focus,textarea:focus,select:focus{outline:none;border-color:#e74c3c;box-shadow:0 0 0 3px rgba(231,76,60,0.12)}
+  .btn-primary{width:100%;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:.75rem;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:background .2s}
+  .btn-primary:hover{background:#7f0000}
+  .auth-switch{text-align:center;margin-top:1rem;font-size:.85rem;color:var(--gray)}
+  .auth-switch a{color:#c0392b;font-weight:500;cursor:pointer;text-decoration:none}
+  .auth-switch a:hover{text-decoration:underline}
+  .error-msg{background:var(--red-light);color:var(--red);border-radius:8px;padding:.6rem .9rem;font-size:.85rem;margin-bottom:1rem;display:none}
+
+  /* SHOP */
+  .shop-layout{display:grid;grid-template-columns:220px 1fr;gap:1.5rem;max-width:1200px;margin:0 auto;padding:1.5rem}
+  .sidebar{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem;height:fit-content;position:sticky;top:80px}
+  .sidebar h3{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:600;color:var(--dark);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid var(--gray-border)}
+  .cat-btn{display:block;width:100%;text-align:left;background:transparent;border:none;padding:.5rem .75rem;border-radius:8px;font-size:.85rem;color:#374151;cursor:pointer;transition:all .2s;margin-bottom:2px;font-family:inherit}
+  .cat-btn:hover,.cat-btn.active{background:#fdf0ef;color:#c0392b;font-weight:500}
+  .search-box{position:relative;margin-bottom:1.25rem}
+  .search-box input{padding-left:2.5rem}
+  .search-icon{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--gray);font-size:1rem}
+
+  .products-area h2{font-family:'Sora',sans-serif;font-size:1.2rem;font-weight:600;margin-bottom:1rem;color:var(--dark)}
+  .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+  .product-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
+  .product-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+  .prod-img{height:120px;background:linear-gradient(135deg,#fdf0ef,#ffd6d6);display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+  .prod-body{padding:.85rem;flex:1;display:flex;flex-direction:column}
+  .prod-brand{font-size:.72rem;font-weight:600;color:#e74c3c;text-transform:uppercase;letter-spacing:.5px}
+  .prod-name{font-size:.9rem;font-weight:500;margin:.25rem 0 .5rem;line-height:1.3;flex:1}
+  .prod-detail{font-size:.78rem;color:var(--gray);margin-bottom:.6rem}
+  .prod-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+  .prod-price{font-family:'Sora',sans-serif;font-weight:700;font-size:1rem;color:#c0392b}
+  .btn-add{background:#c0392b;color:#fff;border:none;border-radius:6px;padding:.4rem .85rem;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .2s;font-family:inherit}
+  .btn-add:hover{background:#7f0000}
+  .qty-ctrl{display:flex;align-items:center;gap:.35rem}
+  .qty-btn{background:#fdf0ef;border:1px solid #e74c3c;color:#c0392b;width:26px;height:26px;border-radius:6px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700}
+  .qty-num{font-weight:600;font-size:.9rem;min-width:18px;text-align:center}
+
+  /* CART PANEL */
+  .cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200}
+  .cart-panel{position:fixed;right:0;top:0;bottom:0;width:380px;background:#fff;z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease;box-shadow:-4px 0 20px rgba(0,0,0,.1)}
+  .cart-panel.open{transform:translateX(0)}
+  .cart-overlay.open{display:block}
+  .cart-head{padding:1.25rem 1.5rem;border-bottom:1px solid var(--gray-border);display:flex;align-items:center;justify-content:space-between}
+  .cart-head h3{font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700}
+  .btn-close-cart{background:var(--gray-light);border:none;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center}
+  .cart-items{flex:1;overflow-y:auto;padding:1rem 1.5rem}
+  .cart-item{display:flex;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--gray-border)}
+  .ci-emoji{font-size:1.8rem;width:44px;height:44px;background:var(--green-light);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ci-info{flex:1}
+  .ci-name{font-size:.85rem;font-weight:500;line-height:1.3;margin-bottom:.2rem}
+  .ci-brand{font-size:.73rem;color:var(--gray);margin-bottom:.4rem}
+  .ci-row{display:flex;align-items:center;justify-content:space-between}
+  .ci-price{font-weight:700;font-size:.9rem;color:#c0392b}
+  .btn-remove{background:var(--red-light);border:none;color:var(--red);width:24px;height:24px;border-radius:5px;cursor:pointer;font-size:.8rem}
+  .cart-empty{text-align:center;padding:3rem 1rem;color:var(--gray)}
+  .cart-empty .big-emoji{font-size:3rem;display:block;margin-bottom:.75rem}
+  .cart-foot{padding:1.25rem 1.5rem;border-top:1px solid var(--gray-border)}
+  .cart-total{display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;margin-bottom:1rem}
+  .btn-order{background:#c0392b;color:#fff;border:none;border-radius:8px;width:100%;padding:.8rem;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:background .2s}
+  .btn-order:hover{background:#7f0000}
+
+  /* ORDER FORM */
+  .order-wrap{max-width:700px;margin:2rem auto;padding:0 1rem}
+  .order-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem}
+  .order-title{font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:#c0392b;margin-bottom:1.5rem}
+  .order-items-list{background:#fdf0ef;border-radius:8px;padding:1rem;margin-bottom:1.5rem}
+  .oi-row{display:flex;justify-content:space-between;padding:.35rem 0;font-size:.85rem}
+  .oi-row:not(:last-child){border-bottom:1px dashed #f5b7b1}
+  .oi-total{display:flex;justify-content:space-between;font-weight:700;font-size:1rem;padding-top:.6rem;border-top:2px solid #e74c3c;margin-top:.3rem}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .full{grid-column:1/-1}
+  .pago-options{display:flex;gap:.75rem;flex-wrap:wrap}
+  .pago-btn{border:2px solid var(--gray-border);background:#fff;border-radius:8px;padding:.5rem 1rem;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .2s;color:#374151}
+  .pago-btn.selected{border-color:#c0392b;background:#fdf0ef;color:#c0392b;font-weight:600}
+
+  /* HISTORY */
+  .history-wrap{max-width:900px;margin:2rem auto;padding:0 1rem}
+  .history-wrap h2{font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+  .pedido-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem;margin-bottom:1rem}
+  .ped-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .ped-id{font-family:'Sora',sans-serif;font-weight:700;font-size:.95rem}
+  .ped-date{font-size:.8rem;color:var(--gray)}
+  .badge{padding:.25rem .65rem;border-radius:99px;font-size:.75rem;font-weight:600}
+  .badge-pending{background:#fef3c7;color:#92400e}
+  .badge-confirmed{background:#d1fae5;color:#065f46}
+  .badge-delivered{background:#dbeafe;color:#1e40af}
+  .ped-items{font-size:.85rem;color:#374151;margin-bottom:.6rem}
+  .ped-total{font-weight:700;color:#c0392b}
+  .no-orders{text-align:center;padding:3rem;color:var(--gray)}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--dark);color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:.875rem;font-weight:500;z-index:999;opacity:0;transform:translateY(12px);transition:all .3s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.green{background:#c0392b}
+
+  /* NAV TABS */
+  .tab-nav{background:var(--white);border-bottom:1px solid var(--gray-border);display:flex;gap:0;max-width:100%;overflow-x:auto}
+  .tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;padding:.85rem 1.5rem;font-size:.9rem;font-weight:500;cursor:pointer;color:var(--gray);font-family:inherit;white-space:nowrap;transition:all .2s}
+  .tab-btn.active{color:#c0392b;border-bottom-color:#c0392b}
+  .tab-btn:hover:not(.active){color:var(--dark)}
+
+  @media(max-width:768px){
+    .shop-layout{grid-template-columns:1fr}
+    .sidebar{position:static;overflow-x:auto}
+    .cat-btn{display:inline-block;width:auto}
+    .form-grid{grid-template-columns:1fr}
+    .cart-panel{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Distribuidora Nico R&J
+    <span>📞 1122451621 • Florencio Varela</span>
+  </div>
+  <div class="header-actions" id="headerActions">
+    <button class="btn-user" onclick="showAuth()">Ingresar</button>
+  </div>
+</header>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="pageAuth">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div id="loginForm">
+        <p class="auth-title">👋 Bienvenido</p>
+        <p class="auth-sub">Ingresá para hacer tus pedidos</p>
+        <div class="error-msg" id="loginError">Usuario o contraseña incorrectos.</div>
+        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="tu@email.com"></div>
+        <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••"></div>
+        <button class="btn-primary" onclick="doLogin()">Ingresar</button>
+        <p class="auth-switch">¿No tenés cuenta? <a onclick="toggleAuth('register')">Registrate</a></p>
+      </div>
+      <div id="registerForm" style="display:none">
+        <p class="auth-title">✍️ Crear cuenta</p>
+        <p class="auth-sub">Completá tus datos para empezar</p>
+        <div class="error-msg" id="regError">Ese email ya está registrado.</div>
+        <div class="form-group"><label>Nombre del comercio / nombre</label><input type="text" id="regName" placeholder="Almacén Don Pedro"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="tu@email.com"></div>
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="regPhone" placeholder="11 1234-5678"></div>
+        <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" placeholder="Mín. 6 caracteres"></div>
+        <button class="btn-primary" onclick="doRegister()">Crear cuenta</button>
+        <p class="auth-switch">¿Ya tenés cuenta? <a onclick="toggleAuth('login')">Ingresá</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHOP PAGE -->
+<div class="page" id="pageShop">
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('catalog')">🛒 Catálogo</button>
+    <button class="tab-btn" onclick="switchTab('orders')">📦 Mis Pedidos</button>
+    <button class="tab-btn" onclick="doLogout()" style="margin-left:auto;color:var(--red)">Salir</button>
+  </div>
+
+  <div id="tabCatalog">
+    <div class="shop-layout">
+      <div class="sidebar">
+        <h3>Categorías</h3>
+        <button class="cat-btn active" onclick="filterCat('todos')">Todos</button>
+        <button class="cat-btn" onclick="filterCat('fiambres')">🥩 Fiambres</button>
+        <button class="cat-btn" onclick="filterCat('quesos')">🧀 Quesos</button>
+        <button class="cat-btn" onclick="filterCat('lacteos')">🥛 Lácteos</button>
+        <button class="cat-btn" onclick="filterCat('snacks')">🍟 Snacks</button>
+        <button class="cat-btn" onclick="filterCat('golosinas')">🍬 Golosinas</button>
+        <button class="cat-btn" onclick="filterCat('galletitas')">🍪 Galletitas</button>
+        <button class="cat-btn" onclick="filterCat('jugos')">🧃 Jugos</button>
+        <button class="cat-btn" onclick="filterCat('bebidas')">🥤 Bebidas</button>
+        <button class="cat-btn" onclick="filterCat('harinas')">🌾 Harinas y Fideos</button>
+        <button class="cat-btn" onclick="filterCat('limpieza')">🧹 Limpieza</button>
+        <button class="cat-btn" onclick="filterCat('varios')">📦 Varios</button>
+      </div>
+      <div class="products-area">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Buscar producto..." oninput="renderProducts()">
+        </div>
+        <h2 id="catTitle">Todos los productos</h2>
+        <div class="products-grid" id="productsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabOrders" style="display:none">
+    <div class="history-wrap">
+      <h2>📦 Mis Pedidos</h2>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CART OVERLAY & PANEL -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-head">
+    <h3>🛒 Mi carrito</h3>
+    <button class="btn-close-cart" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot" id="cartFoot" style="display:none">
+    <div class="cart-total"><span>Total</span><span id="cartTotal">$0</span></div>
+    <button class="btn-order" onclick="goToOrder()">Confirmar pedido →</button>
+  </div>
+</div>
+
+<!-- ORDER FORM PAGE -->
+<div class="page" id="pageOrder">
+  <div class="order-wrap">
+    <button onclick="showShop()" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:.9rem;margin-bottom:1rem;display:flex;align-items:center;gap:.3rem">← Volver al catálogo</button>
+    <div class="order-card">
+      <p class="order-title">📋 Confirmar pedido</p>
+      <div class="order-items-list" id="orderSummary"></div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nombre del comercio / persona</label><input type="text" id="ordName" placeholder="Nombre completo"></div>
+        <div class="form-group full"><label>Dirección exacta</label><input type="text" id="ordAddr" placeholder="Calle 1234, Florencio Varela"></div>
+        <div class="form-group"><label>Entrecalles</label><input type="text" id="ordCross" placeholder="Entre calle A y calle B"></div>
+        <div class="form-group"><label>Teléfono de contacto</label><input type="tel" id="ordPhone" placeholder="11 1234-5678"></div>
+        <div class="form-group full"><label>Forma de pago</label>
+          <div class="pago-options">
+            <button class="pago-btn" onclick="selectPago(this,'Efectivo')">💵 Efectivo</button>
+            <button class="pago-btn" onclick="selectPago(this,'Transferencia')">📲 Transferencia</button>
+            <button class="pago-btn" onclick="selectPago(this,'Débito')">💳 Débito</button>
+            <button class="pago-btn" onclick="selectPago(this,'Crédito')">💳 Crédito</button>
+          </div>
+        </div>
+        <div class="form-group full"><label>Notas adicionales (opcional)</label><textarea id="ordNotes" rows="3" placeholder="Horario de entrega preferido, observaciones..."></textarea></div>
+      </div>
+      <div class="error-msg" id="orderError" style="display:block;margin-bottom:1rem"></div>
+      <button class="btn-primary" onclick="submitOrder()">✅ Enviar pedido</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const PRODUCTS = [
+  // FIAMBRES RIOSMA
+  {id:1,cat:'fiambres',brand:'RIOSMA',name:'Salame tipo Milán',detail:'Por horma 214',price:17499,emoji:'🥩'},
+  {id:2,cat:'fiambres',brand:'RIOSMA',name:'Jamón Cocido Pata de Cerdo',detail:'Horma chica/grande',price:11392,emoji:'🍖'},
+  {id:3,cat:'fiambres',brand:'RIOSMA',name:'Paleta de Cerdo',detail:'Horma chica/grande',price:9455,emoji:'🍖'},
+  {id:4,cat:'fiambres',brand:'RIOSMA',name:'Mortadela Bologna',detail:'214',price:9029,emoji:'🥩'},
+  {id:5,cat:'fiambres',brand:'RIOSMA',name:'Mortadela Bocha',detail:'214',price:9747,emoji:'🥩'},
+  {id:6,cat:'fiambres',brand:'RIOSMA',name:'Mortadela Socha',detail:'214',price:9029,emoji:'🥩'},
+  {id:7,cat:'fiambres',brand:'RIOSMA',name:'Salamín Picado Fino',detail:'Tira 214',price:18245,emoji:'🌭'},
+  {id:8,cat:'fiambres',brand:'RIOSMA',name:'Salamín Picado Grueso',detail:'Tira 214',price:18245,emoji:'🌭'},
+  {id:9,cat:'fiambres',brand:'RIOSMA',name:'Longaniza Española',detail:'Tira 214',price:18245,emoji:'🌭'},
+  {id:10,cat:'fiambres',brand:'RIOSMA',name:'Chorizo Colorado',detail:'Tira 214',price:19234,emoji:'🌭'},
+  {id:11,cat:'fiambres',brand:'RIOSMA',name:'Salchichón Mini c/Jamón',detail:'214 – x unidad',price:3397,emoji:'🌭'},
+  {id:12,cat:'fiambres',brand:'RIOSMA',name:'Mortadela Mini Bocha',detail:'214',price:3396,emoji:'🥩'},
+  {id:13,cat:'fiambres',brand:'RIOSMA',name:'Bondiola al vacío',detail:'214',price:24858,emoji:'🍖'},
+  {id:14,cat:'fiambres',brand:'RIOSMA',name:'Panceta Salada',detail:'214',price:20903,emoji:'🥩'},
+  {id:15,cat:'fiambres',brand:'RIOSMA',name:'Panceta Tiernizada Ahumada',detail:'214',price:20903,emoji:'🥩'},
+  {id:16,cat:'fiambres',brand:'RIOSMA',name:'Paleta Sandwichera',detail:'214',price:7961,emoji:'🍖'},
+  {id:17,cat:'fiambres',brand:'RIOSMA',name:'Queso de Cerdo',detail:'214',price:8215,emoji:'🧀'},
+  {id:18,cat:'fiambres',brand:'RIOSMA',name:'Jamón Cocido',detail:'Por kg',price:17031,emoji:'🍖'},
+  {id:19,cat:'fiambres',brand:'RIOSMA',name:'Lomo de Cerdo Ibérico',detail:'Ahumado 214',price:25841,emoji:'🥩'},
+  {id:20,cat:'fiambres',brand:'RIOSMA',name:'Salchichas tipo Viena x12',detail:'Caja x10 u',price:3163,emoji:'🌭'},
+  {id:21,cat:'fiambres',brand:'RIOSMA',name:'Hamburguesas medallones x4',detail:'Bulto: 12 u',price:4230,emoji:'🍔'},
+  {id:22,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Salame Milán Champion',detail:'Por horma',price:14897,emoji:'🥩'},
+  {id:23,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Jamón Cocido Champion',detail:'Horma chica/grande',price:10192,emoji:'🍖'},
+  {id:24,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Paleta de Cerdo Champion',detail:'Horma chica/grande',price:9483,emoji:'🍖'},
+  {id:25,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Salchichón Champion c/Jamón',detail:'Por horma',price:5967,emoji:'🌭'},
+  {id:26,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Paleta Sandwichera Champion',detail:'Por horma',price:5774,emoji:'🍖'},
+  {id:27,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Hamburguesas Champion x4',detail:'Bulto: 12 u',price:2354,emoji:'🍔'},
+  {id:28,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Salchichas Champion x6',detail:'Caja: 20 u',price:1430,emoji:'🌭'},
+  {id:29,cat:'fiambres',brand:'RIOSMA CHAMPION',name:'Salchichas Champiñesta x6',detail:'Caja: 30 u',price:1020,emoji:'🌭'},
+  // QUESOS
+  {id:30,cat:'quesos',brand:'CUATRO ESQUINAS',name:'Queso Tybo en barra',detail:'Varense',price:11520,emoji:'🧀'},
+  {id:31,cat:'quesos',brand:'INTERNACIONAL',name:'Queso Tybo',detail:'Por kg',price:9240,emoji:'🧀'},
+  {id:32,cat:'quesos',brand:'SPALEN',name:'Queso Cheddar',detail:'Por kg',price:7909,emoji:'🧀'},
+  {id:33,cat:'quesos',brand:'SANTA MARIA',name:'Queso Tybo barra',detail:'Por kg',price:9929,emoji:'🧀'},
+  {id:34,cat:'quesos',brand:'VARENSE',name:'Queso Cheddar',detail:'Por kg',price:12437,emoji:'🧀'},
+  {id:35,cat:'quesos',brand:'JERONA',name:'Sopresata barra',detail:'Por unidad',price:13824,emoji:'🧀'},
+  {id:36,cat:'quesos',brand:'JERONA',name:'Mortadela Bocha barra',detail:'Por unidad',price:14466,emoji:'🧀'},
+  {id:37,cat:'quesos',brand:'INTERNACIONAL',name:'Queso Cremoso',detail:'Por kg',price:6600,emoji:'🧀'},
+  {id:38,cat:'quesos',brand:'CUATRO ESQUINAS',name:'Queso Cremoso',detail:'Por kg',price:6200,emoji:'🧀'},
+  {id:39,cat:'quesos',brand:'VARENSE',name:'Queso Cremoso',detail:'Por kg',price:8280,emoji:'🧀'},
+  {id:40,cat:'quesos',brand:'SANTA MARIA',name:'Queso Cremoso',detail:'Por kg',price:7522,emoji:'🧀'},
+  {id:41,cat:'quesos',brand:'VERAMUZZA',name:'Muzzarella',detail:'~3kg aprox',price:7383,emoji:'🧀'},
+  {id:42,cat:'quesos',brand:'SANTA MARIA',name:'Muzzarella',detail:'x3kg / x500g',price:9273,emoji:'🧀'},
+  {id:43,cat:'quesos',brand:'LA NAPOLI',name:'Muzzarella',detail:'x2kg / x1kg',price:8395,emoji:'🧀'},
+  {id:44,cat:'quesos',brand:'LA SERENÍSIMA',name:'Queso Fiambrin',detail:'Laminado',price:13075,emoji:'🧀'},
+  {id:45,cat:'quesos',brand:'SERENÍSIMA',name:'Queso Cheddar',detail:'En láminas',price:12737,emoji:'🧀'},
+  {id:46,cat:'quesos',brand:'LA NAPOLI',name:'Queso Ricotta',detail:'Por envase',price:3795,emoji:'🧀'},
+  {id:47,cat:'quesos',brand:'SANTA MARIA',name:'Queso Romano',detail:'Por kg',price:17824,emoji:'🧀'},
+  {id:48,cat:'quesos',brand:'VARENSE',name:'Queso Mar del Plata',detail:'Por kg',price:14076,emoji:'🧀'},
+  {id:49,cat:'quesos',brand:'MONTA',name:'Sardo Semi estacionado',detail:'Por kg',price:9660,emoji:'🧀'},
+  {id:50,cat:'quesos',brand:'MONTA',name:'Sardo Estacionado',detail:'Por kg',price:14160,emoji:'🧀'},
+  {id:51,cat:'quesos',brand:'LA SERENÍSIMA',name:'Queso Rayado en cajita',detail:'Caja x10u/35g',price:11870,emoji:'🧀'},
+  // LÁCTEOS
+  {id:52,cat:'lacteos',brand:'SANTA MARIA',name:'Yogurt Bebible Frutilla',detail:'Caja 18 u',price:1591,emoji:'🥛'},
+  {id:53,cat:'lacteos',brand:'SANTA MARIA',name:'Yogurt Bebible Vainilla',detail:'Caja 18 u',price:1591,emoji:'🥛'},
+  {id:54,cat:'lacteos',brand:'SANTA MARIA',name:'Yogurt Bebible Durazno',detail:'Caja 18 u',price:1591,emoji:'🥛'},
+  {id:55,cat:'lacteos',brand:'SANTA MARIA',name:'Yogurt en Vaso Vainilla',detail:'120g – caja 24 u',price:520,emoji:'🥛'},
+  {id:56,cat:'lacteos',brand:'SANTA MARIA',name:'Queso Untable Gruyere',detail:'x180g – caja 12 u',price:1762,emoji:'🧀'},
+  {id:57,cat:'lacteos',brand:'SANTA MARIA',name:'Queso Crema',detail:'x290g',price:2190,emoji:'🧀'},
+  {id:58,cat:'lacteos',brand:'SANTA MARIA',name:'Crema Pasteurizada',detail:'Pote x200g',price:1849,emoji:'🥛'},
+  {id:59,cat:'lacteos',brand:'SANTA MARIA',name:'Crema Pasteurizada',detail:'Pote x2.5lt',price:21622,emoji:'🥛'},
+  {id:60,cat:'lacteos',brand:'SANTA MARIA',name:'Dulce de Leche',detail:'Pote x200g – caja 16 u',price:1200,emoji:'🍮'},
+  {id:61,cat:'lacteos',brand:'SANTA MARIA',name:'Dulce de Leche',detail:'Pote x400g – caja 16 u',price:2065,emoji:'🍮'},
+  {id:62,cat:'lacteos',brand:'SANTA MARIA',name:'Dulce de Leche Repostero',detail:'Pote x400g – caja 16 u',price:2127,emoji:'🍮'},
+  {id:63,cat:'lacteos',brand:'CREMIGAL',name:'Leche Chocolatada',detail:'Por litro',price:1779,emoji:'🥛'},
+  {id:64,cat:'lacteos',brand:'CREMIGAL',name:'Yogur Bebible Frutilla',detail:'Por envase',price:700,emoji:'🥛'},
+  {id:65,cat:'lacteos',brand:'CREMIGAL',name:'Yogur Entero Frutilla',detail:'Por envase',price:407,emoji:'🥛'},
+  {id:66,cat:'lacteos',brand:'CREMIGAL',name:'Yogur con Cereales',detail:'Por envase',price:844,emoji:'🥛'},
+  {id:67,cat:'lacteos',brand:'CREMIGAL',name:'Postre Dulce de Leche',detail:'Por envase',price:564,emoji:'🍮'},
+  {id:68,cat:'lacteos',brand:'CREMIGAL',name:'Flan Vainilla con Caramelo',detail:'Por envase',price:500,emoji:'🍮'},
+  {id:69,cat:'lacteos',brand:'YATASTO',name:'Leche Entera',detail:'Larga vida',price:1200,emoji:'🥛'},
+  {id:70,cat:'lacteos',brand:'LA SERENÍSIMA',name:'Leche Entera',detail:'Por litro',price:1500,emoji:'🥛'},
+  {id:71,cat:'lacteos',brand:'LA SERENÍSIMA',name:'Leche Descremada',detail:'Por litro',price:1500,emoji:'🥛'},
+  {id:72,cat:'lacteos',brand:'LA SERENÍSIMA',name:'Yogur Clásico',detail:'Por envase',price:600,emoji:'🥛'},
+  {id:73,cat:'lacteos',brand:'LA SERENÍSIMA',name:'Yogur Firme',detail:'Por envase',price:650,emoji:'🥛'},
+  // SNACKS
+  {id:74,cat:'snacks',brand:'LE.Q',name:'Papas Fritas corte español',detail:'65g / 100g / 280g / 480g',price:990,emoji:'🍟'},
+  {id:75,cat:'snacks',brand:'LE.Q',name:'Papas Fritas corte americano',detail:'100g / 280g / 480g',price:1193,emoji:'🍟'},
+  {id:76,cat:'snacks',brand:'LE.Q',name:'Pancetitas',detail:'60g',price:938,emoji:'🍟'},
+  {id:77,cat:'snacks',brand:'LE.Q',name:'Palitos Salados Original',detail:'120g / 500g',price:766,emoji:'🍟'},
+  {id:78,cat:'snacks',brand:'LE.Q',name:'Maní Frito Salado',detail:'200g / 500g',price:1456,emoji:'🥜'},
+  {id:79,cat:'snacks',brand:'LE.Q',name:'Maní Repelado con sal',detail:'200g / 500g',price:1000,emoji:'🥜'},
+  {id:80,cat:'snacks',brand:'LE.Q',name:'Maíz Inflado Azucarado',detail:'80g',price:700,emoji:'🍿'},
+  {id:81,cat:'snacks',brand:'LE.Q',name:'Pop Corn Dulce',detail:'80g',price:800,emoji:'🍿'},
+  {id:82,cat:'snacks',brand:'PEI-PO',name:'Papas Clásicas',detail:'100g',price:900,emoji:'🍟'},
+  {id:83,cat:'snacks',brand:'PEI-PO',name:'Maní tipo japonés sabor pizza',detail:'700g',price:2500,emoji:'🥜'},
+  {id:84,cat:'snacks',brand:'PEI-PO',name:'Maní tipo japonés sabor jamón',detail:'700g',price:2500,emoji:'🥜'},
+  {id:85,cat:'snacks',brand:'PEI-PO',name:'Maní tipo japonés clásico',detail:'700g',price:2500,emoji:'🥜'},
+  {id:86,cat:'snacks',brand:'PEI-PO',name:'Maní con cáscara',detail:'1000g',price:3500,emoji:'🥜'},
+  {id:87,cat:'snacks',brand:'PEI-PO',name:'Palitos sabor queso',detail:'70g',price:700,emoji:'🍟'},
+  {id:88,cat:'snacks',brand:'PEI-PO',name:'Cheestick sabor cheddar',detail:'Por unidad',price:800,emoji:'🍟'},
+  {id:89,cat:'snacks',brand:'PEI-PO',name:'Maíz inflado azucarado',detail:'Por bolsa',price:700,emoji:'🍿'},
+  {id:90,cat:'snacks',brand:'PEI-PO',name:'Palitos Ketchup',detail:'60g',price:600,emoji:'🍟'},
+  // JUGOS
+  {id:91,cat:'jugos',brand:'BAGGIO',name:'Jugo Naranja',detail:'1L',price:1200,emoji:'🧃'},
+  {id:92,cat:'jugos',brand:'BAGGIO',name:'Jugo Manzana',detail:'1L',price:1200,emoji:'🧃'},
+  {id:93,cat:'jugos',brand:'BAGGIO',name:'Jugo Multifruta',detail:'1L',price:1200,emoji:'🧃'},
+  {id:94,cat:'jugos',brand:'BAGGIO',name:'Jugo Multifruta mini',detail:'200ml',price:400,emoji:'🧃'},
+  {id:95,cat:'jugos',brand:'TUTTI',name:'Jugo Multifruta',detail:'1L',price:1100,emoji:'🧃'},
+  {id:96,cat:'jugos',brand:'TUTTI',name:'Jugo Naranja',detail:'1L',price:1100,emoji:'🧃'},
+  {id:97,cat:'jugos',brand:'TUTTI',name:'Jugo Durazno',detail:'1L',price:1100,emoji:'🧃'},
+  {id:98,cat:'jugos',brand:'RINDE2',name:'Jugo Manzana en sobre',detail:'Caja x20 sobres',price:900,emoji:'🧃'},
+  {id:99,cat:'jugos',brand:'TANG',name:'Tang Uva',detail:'Caja x20 sobres',price:950,emoji:'🧃'},
+  {id:100,cat:'jugos',brand:'TANG',name:'Tang Pomelo Rosado',detail:'Caja x20 sobres',price:950,emoji:'🧃'},
+  {id:101,cat:'jugos',brand:'TANG',name:'Tang Limonada',detail:'Caja x20 sobres',price:950,emoji:'🧃'},
+  {id:102,cat:'jugos',brand:'FRESH',name:'Fresh Naranja',detail:'Caja x18 sobres',price:850,emoji:'🧃'},
+  {id:103,cat:'jugos',brand:'FRESH',name:'Fresh Manzana',detail:'Caja x18 sobres',price:850,emoji:'🧃'},
+  // BEBIDAS
+  {id:104,cat:'bebidas',brand:'SECCO',name:'Gaseosa',detail:'3L',price:1800,emoji:'🥤'},
+  {id:105,cat:'bebidas',brand:'SECCO',name:'Gaseosa',detail:'2.25L',price:1400,emoji:'🥤'},
+  {id:106,cat:'bebidas',brand:'SECCO',name:'Soda',detail:'2.25L',price:1200,emoji:'🥤'},
+  {id:107,cat:'bebidas',brand:'SECCO',name:'Agua Bio',detail:'2.25L',price:900,emoji:'💧'},
+  {id:108,cat:'bebidas',brand:'UVITA',name:'Vino Blanco',detail:'1000ml',price:2500,emoji:'🍷'},
+  {id:109,cat:'bebidas',brand:'UVITA',name:'Vino Tinto',detail:'1000ml',price:2500,emoji:'🍷'},
+  {id:110,cat:'bebidas',brand:'UVITA',name:'Vino Dulce',detail:'1000ml',price:2500,emoji:'🍷'},
+  {id:111,cat:'bebidas',brand:'MICHEL TORINO',name:'Vino Tinto',detail:'700ml',price:3500,emoji:'🍷'},
+  {id:112,cat:'bebidas',brand:'EMILIA',name:'Cocktail de Vino',detail:'750ml Clarea/Sangría/Spriz/Rosé',price:3000,emoji:'🍷'},
+  // GOLOSINAS
+  {id:113,cat:'golosinas',brand:'ASSAL',name:'Chicles Sabores surtidos',detail:'x150u',price:1200,emoji:'🍬'},
+  {id:114,cat:'golosinas',brand:'BLUPER',name:'Chicle metro',detail:'Por unidad',price:500,emoji:'🍬'},
+  {id:115,cat:'golosinas',brand:'BLUPER',name:'Chicles confitados redondos',detail:'x400g',price:1500,emoji:'🍬'},
+  {id:116,cat:'golosinas',brand:'BLUPER',name:'Chicles bola',detail:'x250g',price:1200,emoji:'🍬'},
+  {id:117,cat:'golosinas',brand:'DOCILE',name:'Gomitas barras ácidas frutilla',detail:'x1.35kg',price:3500,emoji:'🍬'},
+  {id:118,cat:'golosinas',brand:'DOCILE',name:'Gomitas sabores surtidos',detail:'x900g',price:2800,emoji:'🍬'},
+  {id:119,cat:'golosinas',brand:'BILLIKEN',name:'Gomitas Ositos/Dientes/Pez',detail:'Caja x12u/30g',price:400,emoji:'🍬'},
+  {id:120,cat:'golosinas',brand:'BUFFYS',name:'Malvaviscos Frutal',detail:'x32u',price:800,emoji:'🍡'},
+  {id:121,cat:'golosinas',brand:'BUFFYS',name:'Malvaviscos Fresa',detail:'x32u',price:800,emoji:'🍡'},
+  {id:122,cat:'golosinas',brand:'BUFFYS',name:'Malvaviscos Tradicional',detail:'x200g',price:600,emoji:'🍡'},
+  {id:123,cat:'golosinas',brand:'JORGITO',name:'Conitos DDL y chocolate',detail:'12u x34g',price:600,emoji:'🍫'},
+  {id:124,cat:'golosinas',brand:'HAMLET',name:'Alfajor',detail:'45g – caja x21u',price:700,emoji:'🍫'},
+  {id:125,cat:'golosinas',brand:'BONOBON',name:'Alfajor chocolate blanco y negro',detail:'Caja x30u',price:600,emoji:'🍫'},
+  {id:126,cat:'golosinas',brand:'GUAYMALLEN',name:'Alfajor',detail:'38g – caja x40u',price:500,emoji:'🍫'},
+  {id:127,cat:'golosinas',brand:'FULBITO',name:'Alfajor maní y chocolate',detail:'30g – caja x60u',price:400,emoji:'🍫'},
+  {id:128,cat:'golosinas',brand:'JORGITO',name:'Alfajor blanco y negro',detail:'55g – caja x24u',price:700,emoji:'🍫'},
+  {id:129,cat:'golosinas',brand:'RASTA',name:'Alfajor blanco y negro',detail:'70g – caja x18u',price:800,emoji:'🍫'},
+  {id:130,cat:'golosinas',brand:'MILKA',name:'Alfajor Mousse',detail:'42g',price:1200,emoji:'🍫'},
+  {id:131,cat:'golosinas',brand:'AGUILA',name:'Alfajor Minitorta',detail:'69g',price:1100,emoji:'🍫'},
+  {id:132,cat:'golosinas',brand:'PICNIC',name:'Minitorta DDL',detail:'35g',price:700,emoji:'🍫'},
+  {id:133,cat:'golosinas',brand:'RAPSODIA',name:'Minitorta DDL',detail:'80g',price:900,emoji:'🍫'},
+  {id:134,cat:'golosinas',brand:'POP CORN',name:'Pochoclos caramelados',detail:'100g',price:600,emoji:'🍿'},
+  {id:135,cat:'golosinas',brand:'POP CORN',name:'Pochoclos Sweet & Salty',detail:'100g',price:600,emoji:'🍿'},
+  // GALLETITAS
+  {id:136,cat:'galletitas',brand:'LA NONA',name:'Anillitos glaseados',detail:'150g / 300g',price:500,emoji:'🍪'},
+  {id:137,cat:'galletitas',brand:'LA NONA',name:'Pepas con chips de chocolate',detail:'320g',price:743,emoji:'🍪'},
+  {id:138,cat:'galletitas',brand:'LA NONA',name:'Pepas con dulce de membrillo',detail:'180g',price:480,emoji:'🍪'},
+  {id:139,cat:'galletitas',brand:'LA NONA',name:'Bananitas con chocolate',detail:'200g',price:600,emoji:'🍪'},
+  {id:140,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas con semillas',detail:'125g',price:700,emoji:'🍪'},
+  {id:141,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas clásicas',detail:'125g',price:700,emoji:'🍪'},
+  {id:142,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas sabor pizza',detail:'125g',price:700,emoji:'🍪'},
+  {id:143,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas sabor cheddar',detail:'125g',price:700,emoji:'🍪'},
+  {id:144,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas sabor milanesa',detail:'125g',price:700,emoji:'🍪'},
+  {id:145,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas sabor ketchup',detail:'125g',price:600,emoji:'🍪'},
+  {id:146,cat:'galletitas',brand:'TOSTEX CINTITAS',name:'Cintitas bañadas cookies & cream',detail:'125g',price:750,emoji:'🍪'},
+  {id:147,cat:'galletitas',brand:'TOSTEX CHIPS',name:'Con chips de chocolate',detail:'120g / 270g',price:700,emoji:'🍪'},
+  {id:148,cat:'galletitas',brand:'TOSTEX AVENA',name:'Avena y semillas',detail:'300g',price:900,emoji:'🍪'},
+  {id:149,cat:'galletitas',brand:'TOSTEX AVENA',name:'Avena y pasas',detail:'270g',price:850,emoji:'🍪'},
+  {id:150,cat:'galletitas',brand:'TOSTEX AVENA',name:'Avena y chips de chocolate',detail:'270g',price:850,emoji:'🍪'},
+  {id:151,cat:'galletitas',brand:'OREO',name:'Oreo',detail:'118g',price:900,emoji:'🍪'},
+  {id:152,cat:'galletitas',brand:'TERRABUSI',name:'Surtidas',detail:'410g',price:1200,emoji:'🍪'},
+  {id:153,cat:'galletitas',brand:'SOLITAS',name:'Legendarias',detail:'500g',price:1100,emoji:'🍪'},
+  {id:154,cat:'galletitas',brand:'9 DE ORO',name:'Clásicas/Agridulce/Azucaradas',detail:'210g',price:800,emoji:'🍪'},
+  {id:155,cat:'galletitas',brand:'MOROCHITAS',name:'Morochitas',detail:'140g',price:600,emoji:'🍪'},
+  // HARINAS Y FIDEOS
+  {id:156,cat:'harinas',brand:'BRUNING',name:'Harina Especial para Pizza',detail:'1kg tipo 000',price:800,emoji:'🌾'},
+  {id:157,cat:'harinas',brand:'BRUNING',name:'Harina para Confitería',detail:'1kg tipo 0000',price:900,emoji:'🌾'},
+  {id:158,cat:'harinas',brand:'BRUNING',name:'Harina Leudante',detail:'1kg',price:750,emoji:'🌾'},
+  {id:159,cat:'harinas',brand:'BRUNING',name:'Harina Común',detail:'1kg tipo 000',price:700,emoji:'🌾'},
+  {id:160,cat:'harinas',brand:'BRUNING',name:'Harina Especial para Pizza',detail:'25kg tipo 000',price:18000,emoji:'🌾'},
+  {id:161,cat:'harinas',brand:'BLANCAFLOR',name:'Harina Leudante',detail:'1kg',price:800,emoji:'🌾'},
+  {id:162,cat:'harinas',brand:'BLANCAFLOR',name:'Harina con levadura para pizza',detail:'1kg',price:850,emoji:'🌾'},
+  {id:163,cat:'harinas',brand:'BLANCAFLOR',name:'Harina libre de gluten',detail:'1kg',price:1100,emoji:'🌾'},
+  {id:164,cat:'harinas',brand:'BRUNING',name:'Fideos – distintos cortes',detail:'Por paquete 500g',price:600,emoji:'🍝'},
+  {id:165,cat:'harinas',brand:'SOL PAMPEANO',name:'Fideos – distintos cortes',detail:'Por paquete 500g',price:550,emoji:'🍝'},
+  {id:166,cat:'harinas',brand:'LUCCHETTI',name:'Milanesas de soja x4',detail:'Por caja',price:1500,emoji:'🍝'},
+  {id:167,cat:'harinas',brand:'LUCCHETTI',name:'Medallones de pollo x4',detail:'Por caja',price:1500,emoji:'🍝'},
+  {id:168,cat:'harinas',brand:'UNION GANADERA',name:'Hamburguesas clásicas x4',detail:'Por pack',price:2000,emoji:'🍔'},
+  {id:169,cat:'harinas',brand:'UNION GANADERA',name:'Nuggets Crocantes',detail:'300g',price:1800,emoji:'🍗'},
+  {id:170,cat:'harinas',brand:'GRANJA DEL SOL',name:'Milanesas caseras x4',detail:'330g',price:2200,emoji:'🍗'},
+  {id:171,cat:'harinas',brand:'GRANJA DEL SOL',name:'Nuggets Crocantes',detail:'500g',price:2000,emoji:'🍗'},
+  // LIMPIEZA
+  {id:172,cat:'limpieza',brand:'VARIOS',name:'Productos de Limpieza',detail:'Consultar stock y precios',price:0,emoji:'🧹'},
+  {id:173,cat:'limpieza',brand:'VARIOS',name:'Artículos de Pañalera',detail:'Consultar stock y precios',price:0,emoji:'🧴'},
+  // VARIOS
+  {id:174,cat:'varios',brand:'ROMERO',name:'Pan Lactal',detail:'x360g / x600g',price:1541,emoji:'🍞'},
+  {id:175,cat:'varios',brand:'ROMERO',name:'Pan Hamburguesa',detail:'Por paquete',price:1025,emoji:'🍞'},
+  {id:176,cat:'varios',brand:'ROMERO',name:'Pan Pancho',detail:'Por paquete',price:1025,emoji:'🍞'},
+  {id:177,cat:'varios',brand:'CABRALES',name:'Café Latte',detail:'x115g',price:4125,emoji:'☕'},
+  {id:178,cat:'varios',brand:'CABRALES',name:'Café Moka',detail:'x115g',price:4125,emoji:'☕'},
+  {id:179,cat:'varios',brand:'CABRALES',name:'Capuchino Light',detail:'x115g',price:4125,emoji:'☕'},
+  {id:180,cat:'varios',brand:'CABRALES',name:'Café Clásico Instantáneo',detail:'x160g',price:3800,emoji:'☕'},
+  {id:181,cat:'varios',brand:'SILVINA',name:'Pan Rallado',detail:'450g',price:800,emoji:'🌾'},
+  {id:182,cat:'varios',brand:'SILVINA',name:'Rebozador',detail:'450g',price:800,emoji:'🌾'},
+  {id:183,cat:'varios',brand:'SILVINA',name:'Sémola',detail:'400g',price:700,emoji:'🌾'},
+  {id:184,cat:'varios',brand:'PREFERIDO',name:'Pan Rallado',detail:'500g',price:750,emoji:'🌾'},
+  {id:185,cat:'varios',brand:'VARIOS',name:'Aceite',detail:'Consultar variedades',price:0,emoji:'🫙'},
+  {id:186,cat:'varios',brand:'VARIOS',name:'Arroz',detail:'Consultar variedades',price:0,emoji:'🍚'},
+  {id:187,cat:'varios',brand:'VARIOS',name:'Cereales Copos Azucarados',detail:'x150g / x200g',price:800,emoji:'🥣'},
+  {id:188,cat:'varios',brand:'ORALI',name:'Ravioles 4 Quesos',detail:'500g',price:1500,emoji:'🍝'},
+  {id:189,cat:'varios',brand:'ORALI',name:'Ravioles Ricota y Jamón',detail:'500g',price:1500,emoji:'🍝'},
+  {id:190,cat:'varios',brand:'ORALI',name:'Ñoquis de Papa',detail:'500g',price:1923,emoji:'🍝'},
+  {id:191,cat:'varios',brand:'ORALI',name:'Ñoquis Libre de Gluten',detail:'500g',price:1923,emoji:'🍝'},
+  {id:192,cat:'varios',brand:'ORALI',name:'Tapas para Empanadas Hojaldre',detail:'x48u',price:1200,emoji:'🥟'},
+  {id:193,cat:'varios',brand:'ORALI',name:'Soja Texturizada sabor carne',detail:'1kg',price:1800,emoji:'🫘'},
+  {id:194,cat:'varios',brand:'VARIOS',name:'Postres Exquisita',detail:'Consultar sabores',price:0,emoji:'🍮'},
+  {id:195,cat:'varios',brand:'VARIOS',name:'Condimentos',detail:'Consultar variedades',price:0,emoji:'🧂'},
+  {id:196,cat:'varios',brand:'VARIOS',name:'Aderezos',detail:'Consultar variedades',price:0,emoji:'🫙'},
+];
+
+// ===== STATE =====
+let db = JSON.parse(localStorage.getItem('nicorj_db') || '{"users":[],"orders":[]}');
+let currentUser = JSON.parse(localStorage.getItem('nicorj_user') || 'null');
+let cart = [];
+let currentCat = 'todos';
+let selectedPago = '';
+
+function saveDB(){ localStorage.setItem('nicorj_db', JSON.stringify(db)); }
+function saveUser(u){ localStorage.setItem('nicorj_user', JSON.stringify(u)); }
+
+// ===== INIT =====
+window.onload = function(){
+  if(currentUser){ showShop(); } else { showAuth(); }
+};
+
+// ===== AUTH =====
+function showAuth(){ setPage('pageAuth'); updateHeader(false); }
+function toggleAuth(mode){
+  document.getElementById('loginForm').style.display = mode==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = mode==='register'?'block':'none';
+  document.getElementById('loginError').style.display='none';
+  document.getElementById('regError').style.display='none';
+}
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('loginPass').value;
+  const user=db.users.find(u=>u.email===email && u.password===pass);
+  if(!user){ document.getElementById('loginError').style.display='block'; return; }
+  document.getElementById('loginError').style.display='none';
+  currentUser=user; saveUser(user); showShop();
+}
+function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const phone=document.getElementById('regPhone').value.trim();
+  const pass=document.getElementById('regPass').value;
+  if(!name||!email||!pass||pass.length<6){ showToast('Completá todos los campos (contraseña mín. 6 caracteres)'); return; }
+  if(db.users.find(u=>u.email===email)){ document.getElementById('regError').style.display='block'; return; }
+  document.getElementById('regError').style.display='none';
+  const user={id:Date.now(),name,email,phone,password:pass};
+  db.users.push(user); saveDB();
+  currentUser=user; saveUser(user); showShop();
+  showToast('¡Cuenta creada! Bienvenido/a, '+name+'!', 'green');
+}
+function doLogout(){
+  currentUser=null; localStorage.removeItem('nicorj_user');
+  cart=[]; showAuth();
+}
+
+// ===== SHOP =====
+function showShop(){
+  setPage('pageShop'); updateHeader(true);
+  renderProducts(); switchTab('catalog');
+}
+function updateHeader(logged){
+  const h=document.getElementById('headerActions');
+  if(logged && currentUser){
+    h.innerHTML=`<button class="btn-cart" onclick="openCart()">🛒 Carrito <span class="cart-badge" id="cartBadge">0</span></button>
+    <span style="color:#a8f0c6;font-size:.85rem;font-weight:500">${currentUser.name.split(' ')[0]}</span>`;
+  } else {
+    h.innerHTML=`<button class="btn-user" onclick="showAuth()">Ingresar</button>`;
+  }
+  updateBadge();
+}
+function switchTab(tab){
+  document.getElementById('tabCatalog').style.display=tab==='catalog'?'block':'none';
+  document.getElementById('tabOrders').style.display=tab==='orders'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(tab==='catalog'&&i===0)||(tab==='orders'&&i===1)));
+  if(tab==='orders') renderOrders();
+}
+function filterCat(cat){
+  currentCat=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderProducts();
+}
+function renderProducts(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  let prods=PRODUCTS.filter(p=>(currentCat==='todos'||p.cat===currentCat)&&
+    (p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)||p.detail.toLowerCase().includes(q)));
+  const titles={'todos':'Todos los productos','fiambres':'🥩 Fiambres','quesos':'🧀 Quesos','lacteos':'🥛 Lácteos',
+    'snacks':'🍟 Snacks','golosinas':'🍬 Golosinas','galletitas':'🍪 Galletitas','jugos':'🧃 Jugos',
+    'bebidas':'🥤 Bebidas','harinas':'🌾 Harinas y Fideos','limpieza':'🧹 Limpieza','varios':'📦 Varios'};
+  document.getElementById('catTitle').textContent=(titles[currentCat]||'Productos')+(q?` — "${q}"`:'');
+  const grid=document.getElementById('productsGrid');
+  if(!prods.length){grid.innerHTML='<p style="color:var(--gray);grid-column:1/-1;text-align:center;padding:2rem">No se encontraron productos.</p>';return;}
+  grid.innerHTML=prods.map(p=>{
+    const item=cart.find(c=>c.id===p.id);
+    const qty=item?item.qty:0;
+    const priceStr=p.price?'$'+p.price.toLocaleString('es-AR'):'Consultar';
+    const ctrl=qty===0
+      ?`<button class="btn-add" onclick="addToCart(${p.id})">+ Agregar</button>`
+      :`<div class="qty-ctrl"><button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="changeQty(${p.id},1)">+</button></div>`;
+    return`<div class="product-card">
+      <div class="prod-img">${p.emoji}</div>
+      <div class="prod-body">
+        <div class="prod-brand">${p.brand}</div>
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-detail">${p.detail}</div>
+        <div class="prod-footer"><span class="prod-price">${priceStr}</span>${ctrl}</div>
+      </div></div>`;
+  }).join('');
+}
+
+// ===== CART =====
+function addToCart(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  const ex=cart.find(c=>c.id===id);
+  if(ex) ex.qty++; else cart.push({...p,qty:1});
+  updateBadge(); renderProducts();
+  showToast('✓ Agregado al carrito','green');
+}
+function changeQty(id,delta){
+  const ex=cart.find(c=>c.id===id);
+  if(!ex) return;
+  ex.qty+=delta;
+  if(ex.qty<=0) cart=cart.filter(c=>c.id!==id);
+  updateBadge(); renderProducts();
+  if(document.getElementById('cartPanel').classList.contains('open')) renderCart();
+}
+function updateBadge(){
+  const b=document.getElementById('cartBadge');
+  if(b) b.textContent=cart.reduce((a,c)=>a+c.qty,0);
+}
+function openCart(){
+  document.getElementById('cartPanel').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+  renderCart();
+}
+function closeCart(){
+  document.getElementById('cartPanel').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+}
+function renderCart(){
+  const el=document.getElementById('cartItems');
+  const foot=document.getElementById('cartFoot');
+  if(!cart.length){
+    el.innerHTML=`<div class="cart-empty"><span class="big-emoji">🛒</span><p>Tu carrito está vacío</p><p style="font-size:.85rem;margin-top:.5rem">Agregá productos del catálogo</p></div>`;
+    foot.style.display='none'; return;
+  }
+  foot.style.display='block';
+  el.innerHTML=cart.map(c=>`<div class="cart-item">
+    <div class="ci-emoji">${c.emoji}</div>
+    <div class="ci-info">
+      <div class="ci-brand">${c.brand}</div>
+      <div class="ci-name">${c.name}</div>
+      <div class="ci-row">
+        <div class="qty-ctrl"><button class="qty-btn" onclick="changeQty(${c.id},-1)">−</button><span class="qty-num">${c.qty}</span><button class="qty-btn" onclick="changeQty(${c.id},1)">+</button></div>
+        <span class="ci-price">${c.price?'$'+(c.price*c.qty).toLocaleString('es-AR'):'Consultar'}</span>
+        <button class="btn-remove" onclick="removeItem(${c.id})">✕</button>
+      </div>
+    </div></div>`).join('');
+  const total=cart.reduce((a,c)=>a+c.price*c.qty,0);
+  document.getElementById('cartTotal').textContent='$'+total.toLocaleString('es-AR');
+}
+function removeItem(id){
+  cart=cart.filter(c=>c.id!==id);
+  updateBadge(); renderCart(); renderProducts();
+}
+function goToOrder(){
+  if(!cart.length){showToast('Tu carrito está vacío');return;}
+  closeCart(); setPage('pageOrder'); renderOrderSummary();
+  if(currentUser){ document.getElementById('ordName').value=currentUser.name; document.getElementById('ordPhone').value=currentUser.phone||''; }
+}
+
+// ===== ORDER =====
+function renderOrderSummary(){
+  const el=document.getElementById('orderSummary');
+  const rows=cart.map(c=>`<div class="oi-row"><span>${c.qty}x ${c.brand} – ${c.name}</span><span>${c.price?'$'+(c.price*c.qty).toLocaleString('es-AR'):'Consultar'}</span></div>`).join('');
+  const total=cart.reduce((a,c)=>a+c.price*c.qty,0);
+  el.innerHTML=rows+`<div class="oi-total"><span>Total estimado</span><span>$${total.toLocaleString('es-AR')}</span></div>`;
+}
+function selectPago(btn,pago){
+  selectedPago=pago;
+  document.querySelectorAll('.pago-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function submitOrder(){
+  const name=document.getElementById('ordName').value.trim();
+  const addr=document.getElementById('ordAddr').value.trim();
+  const phone=document.getElementById('ordPhone').value.trim();
+  const errEl=document.getElementById('orderError');
+  if(!name||!addr||!phone){errEl.style.display='block';errEl.textContent='Completá nombre, dirección y teléfono.';return;}
+  if(!selectedPago){errEl.style.display='block';errEl.textContent='Seleccioná una forma de pago.';return;}
+  errEl.style.display='none';
+  const order={
+    id:'PED-'+Date.now(),
+    userId:currentUser.id,
+    date:new Date().toLocaleString('es-AR'),
+    items:[...cart],
+    total:cart.reduce((a,c)=>a+c.price*c.qty,0),
+    name,addr,
+    cross:document.getElementById('ordCross').value,
+    phone,
+    pago:selectedPago,
+    notes:document.getElementById('ordNotes').value,
+    status:'pendiente'
+  };
+  db.orders.push(order); saveDB();
+
+  // ── Notificación por email al dueño ──────────────────────────
+  const productosTexto = order.items
+    .map(i => i.qty + 'x ' + i.brand + ' – ' + i.name + ' (' + (i.price ? '$' + (i.price * i.qty).toLocaleString('es-AR') : 'Consultar') + ')')
+    .join('\n');
+
+  console.log('Datos que se mandan a EmailJS:', {
+    pedido_id : order.id,
+    fecha     : order.date,
+    cliente   : order.name,
+    telefono  : order.phone,
+    direccion : order.addr + (order.cross ? ' (entre ' + order.cross + ')' : ''),
+    productos : productosTexto,
+    total     : '$' + order.total.toLocaleString('es-AR'),
+    pago      : order.pago,
+    notas     : order.notes || '(sin notas)'
+  });
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    pedido_id : order.id,
+    fecha     : order.date,
+    cliente   : order.name,
+    telefono  : order.phone,
+    direccion : order.addr + (order.cross ? ' (entre ' + order.cross + ')' : ''),
+    productos : productosTexto,
+    total     : '$' + order.total.toLocaleString('es-AR'),
+    pago      : order.pago,
+    notas     : order.notes || '(sin notas)'
+  }).catch(function(err){
+    console.warn('EmailJS error:', JSON.stringify(err));
+    // El pedido igual se guarda aunque falle el email
+  });
+  // ─────────────────────────────────────────────────────────────
+
+  cart=[]; updateBadge(); renderProducts(); selectedPago='';
+  showToast('¡Pedido enviado exitosamente! 🎉','green');
+  setTimeout(()=>{ switchTab('orders'); showShop(); },1200);
+}
+
+// ===== ORDERS HISTORY =====
+function renderOrders(){
+  const el=document.getElementById('ordersList');
+  const userOrders=db.orders.filter(o=>o.userId===currentUser.id).reverse();
+  if(!userOrders.length){
+    el.innerHTML='<div class="no-orders"><p style="font-size:2rem">📦</p><p style="margin-top:.75rem">Todavía no hiciste ningún pedido.</p></div>'; return;
+  }
+  const statusBadge=(s)=>({pendiente:'badge-pending',confirmado:'badge-confirmed',entregado:'badge-delivered'}[s]||'badge-pending');
+  const statusLabel=(s)=>({pendiente:'⏳ Pendiente',confirmado:'✅ Confirmado',entregado:'🚚 Entregado'}[s]||s);
+  el.innerHTML=userOrders.map(o=>`<div class="pedido-card">
+    <div class="ped-head">
+      <span class="ped-id">${o.id}</span>
+      <span class="badge ${statusBadge(o.status)}">${statusLabel(o.status)}</span>
+    </div>
+    <div class="ped-date">${o.date} • ${o.pago}</div>
+    <div class="ped-items" style="margin:.6rem 0">${o.items.map(i=>`${i.qty}x ${i.name}`).join(' · ')}</div>
+    <div class="ped-total">Total: $${o.total.toLocaleString('es-AR')}</div>
+    <div style="font-size:.8rem;color:var(--gray);margin-top:.4rem">📍 ${o.addr}${o.cross?' (entre '+o.cross+')':''}</div>
+  </div>`).join('');
+}
+
+// ===== UTILS =====
+function setPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+let toastTimer;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='toast',2500);
+}
+</script>
+</body>
+</html>
